@@ -6,13 +6,7 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_tokenAddress",
-						"type": "address"
-					}
-				],
+				"inputs": [],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
 			},
@@ -28,6 +22,19 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "USMCToken",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -144,11 +151,11 @@
 	},
 	"sources": {
 		"contracts/2_Owner.sol": {
-			"keccak256": "0x4004431d5b0e7278e6a19ea66194e8e2320c8c2c7421c5b12a59c10d6c3dcd8b",
+			"keccak256": "0x7d226b1a360bd0e9848c7f67b26a7323519c43f90d1dd62e189cb82697b4f862",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8530a12b507b6ed6b7537c64562e8fc86c42068acff6cf112bf137f4dcbfb934",
-				"dweb:/ipfs/QmcxeZcYYSaZpNsqVgAVKdcmqdZXea9V8Q8Z9wmjGDdiqL"
+				"bzz-raw://6f7b6e52409140ec85f4ef33e3adba760e88faa45ba41d00ef8eba4ae4b988f8",
+				"dweb:/ipfs/QmURR1yk2tThSA9wYKYRm1pMc8ub7fgsMTGJ3afMbRAMVM"
 			]
 		}
 	},

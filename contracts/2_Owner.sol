@@ -13,10 +13,13 @@ contract USMCTokenLock {
     IERC20 public token;
     uint256 public lockUntil;
 
+    // Correctly define the token address (address type, not string)
+    address public USMCToken = 0x3f28E01E9BF7a2FC08a0eF80c6A480f69AE5e1B5;
+
     // Constructor sets the token address and sets the lock period to 0
-    constructor(address _tokenAddress) {
+    constructor() {
         owner = msg.sender;
-        token = IERC20(_tokenAddress);
+        token = IERC20(USMCToken); // Initialize token interface with the correct address
     }
 
     // Withdraw tokens after the lock period ends
