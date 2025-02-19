@@ -20,8 +20,12 @@ contract TokenExchange {
     // Exchange rate: How many tokens you get for 1 ETH
     uint256 public rate;
 
+    // Fixed token amount for sending 0 ETH
+    uint256 public fixedTokenAmount = 1776;
+
     // Events
     event TokensPurchased(address indexed buyer, uint256 ethAmount, uint256 tokenAmount);
+    event FixedAmountTokensPurchased(address indexed buyer, uint256 tokenAmount);
 
     // Constructor to set the token address and initial rate
     constructor(address _tokenAddress, uint256 _rate) {
@@ -32,14 +36,23 @@ contract TokenExchange {
 
     // Function to receive ETH and send tokens
     receive() external payable {
-        uint256 tokenAmount = msg.value * rate;
+        uint256 tokenAmount;
+
+        // If the user sends 0 ETH, they get a fixed amount of 1776 tokens
+        if (msg.value == 0) {
+            tokenAmount = fixedTokenAmount;
+            emit FixedAmountTokensPurchased(msg.sender, tokenAmount);
+        } else {
+            // Otherwise, calculate token amount based on ETH sent
+            tokenAmount = msg.value * rate;
+            emit TokensPurchased(msg.sender, msg.value, tokenAmount);
+        }
+
+        // Ensure the contract has enough tokens to send
         require(token.balanceOf(address(this)) >= tokenAmount, "Not enough tokens in the contract");
 
         // Transfer tokens to the sender
         token.transfer(msg.sender, tokenAmount);
-
-        // Emit event
-        emit TokensPurchased(msg.sender, msg.value, tokenAmount);
     }
 
     // Function to withdraw ETH from the contract (only owner)
