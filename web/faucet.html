@@ -3,230 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Exchange</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
+    <title>Token Distributor</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.0/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-    <h1>Token Exchange</h1>
-    <p>Send ETH to receive tokens! Send 0 ETH to get 1776 tokens.</p>
-
+    <h1>Token Distributor</h1>
     <button id="connectButton">Connect Wallet</button>
-    <div id="walletInfo" style="display: none;">
-        <p>Connected: <span id="userAddress"></span></p>
-        <p>Account Balance: <span id="ethBalance">0</span> ETH</p>
-    </div>
-
-    <h3>Send ETH to Receive Tokens</h3>
-    <input type="number" id="ethAmount" placeholder="Enter ETH amount" step="any">
-    <button id="sendEthButton">Send ETH</button>
-
-    <h3>Get Fixed 1776 Tokens</h3>
-    <button id="sendZeroEthButton">Send 0 ETH</button>
-
+    <button id="claimButton" disabled>Claim 1776 Tokens</button>
     <script>
-        const contractAddress = 'YOUR_CONTRACT_ADDRESS_HERE'; // Replace with your contract address
-        const contractABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "totalSupply",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "recipient",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "sender",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "recipient",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
- ]; // Replace with your contract ABI
-        
-        let web3;
-        let userAccount;
+        let provider;
+        let signer;
         let contract;
+        const contractAddress = '0xYourContractAddress';  // Replace with your deployed contract address
+        const tokenAddress = '0xYourTokenAddress';  // Replace with the ERC-20 token address
+        
+        const abi = [
+            "function receive() external payable",
+            "function depositTokens(uint256 amount) external"
+        ];
 
-        // Initialize Web3 and set up the contract
-        window.addEventListener('load', async () => {
-            if (typeof window.ethereum !== 'undefined') {
-                web3 = new Web3(window.ethereum);
-                contract = new web3.eth.Contract(contractABI, contractAddress);
-                await checkIfWalletIsConnected();
+        const connectButton = document.getElementById("connectButton");
+        const claimButton = document.getElementById("claimButton");
+
+        connectButton.onclick = async () => {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+
+                try {
+                    await provider.send("eth_requestAccounts", []);
+                    connectButton.textContent = "Connected";
+                    claimButton.disabled = false;
+                } catch (err) {
+                    console.log("User rejected the request");
+                }
             } else {
-                alert('Please install MetaMask to use this app');
-            }
-        });
-
-        async function checkIfWalletIsConnected() {
-            const accounts = await web3.eth.getAccounts();
-            if (accounts.length > 0) {
-                userAccount = accounts[0];
-                document.getElementById('connectButton').style.display = 'none';
-                document.getElementById('walletInfo').style.display = 'block';
-                document.getElementById('userAddress').textContent = userAccount;
-                await updateBalance();
-            } else {
-                document.getElementById('connectButton').style.display = 'block';
-            }
-        }
-
-        // Connect wallet
-        document.getElementById('connectButton').onclick = async () => {
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
-            checkIfWalletIsConnected();
-        };
-
-        async function updateBalance() {
-            const balance = await web3.eth.getBalance(userAccount);
-            document.getElementById('ethBalance').textContent = web3.utils.fromWei(balance, 'ether');
-        }
-
-        // Send ETH to the contract to get tokens based on the rate
-        document.getElementById('sendEthButton').onclick = async () => {
-            const ethAmount = document.getElementById('ethAmount').value;
-            if (ethAmount <= 0) {
-                alert("Please enter a valid ETH amount");
-                return;
-            }
-            const valueInWei = web3.utils.toWei(ethAmount, 'ether');
-            try {
-                await contract.methods.receive().send({ from: userAccount, value: valueInWei });
-                alert(`Sent ${ethAmount} ETH and received tokens!`);
-                updateBalance();
-            } catch (error) {
-                console.error(error);
-                alert('Transaction failed');
+                alert("MetaMask is required!");
             }
         };
 
-        // Send 0 ETH to get the fixed 1776 tokens
-        document.getElementById('sendZeroEthButton').onclick = async () => {
+        claimButton.onclick = async () => {
             try {
-                await contract.methods.receive().send({ from: userAccount, value: '0' });
-                alert('Sent 0 ETH and received 1776 tokens!');
-                updateBalance();
-            } catch (error) {
-                console.error(error);
-                alert('Transaction failed');
+                const tx = await contract.receive({ value: ethers.utils.parseEther("0") });
+                await tx.wait();
+                alert("Claim successful! You have received 1776 tokens.");
+            } catch (err) {
+                console.error("Error claiming tokens:", err);
+                alert("An error occurred.");
             }
         };
     </script>
