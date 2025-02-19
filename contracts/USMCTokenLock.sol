@@ -26,29 +26,29 @@ contract USMCTokenLock {
     }
 
     // Withdraw tokens after the lock period ends
-    function withdrawTokens(uint256 amount) external {
+    function Withdraw(uint256 amount) external {
         require(block.timestamp >= lockUntil, "Tokens are still locked");
         require(token.transfer(msg.sender, amount), "Token transfer failed");
     }
 
     // Lock tokens for a specific time period
-    function lockTokens(uint256 _addlockuntilblock) external {
+    function LockBlock(uint256 _addlockuntilblock) external {
         require(block.timestamp >= lockUntil, "Tokens are still locked");
         lockUntil = _addlockuntilblock;
     }
 
     // Function to check the token balance of the contract
-    function getTokenBalance() external view returns (uint256) {
+    function Balance() external view returns (uint256) {
         return token.balanceOf(address(this));  // Returns the token balance of the contract
     }
 
     // Function to get the current block number
-    function CurrentBlockNumber() external view returns (uint256) {
+    function BlockNumber() external view returns (uint256) {
         return block.number;  // Returns the current block number
     }
 
     // Function to change the owner of the contract
-    function changeOwner(address newOwner) external onlyOwner {
+    function ChangeOwner(address newOwner) external onlyOwner {
         require(newOwner != address(0), "New owner address cannot be zero address");
         owner = newOwner;
     }
