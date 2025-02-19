@@ -19,6 +19,12 @@ contract USMCTokenLock {
         token = IERC20(_tokenAddress);
     }
 
+    // Modifier to restrict function access to only the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can execute this");
+        _;
+    }
+
     // Withdraw tokens after the lock period ends
     function withdrawTokens(uint256 amount) external {
         require(block.timestamp >= lockUntil, "Tokens are still locked");
@@ -41,6 +47,12 @@ contract USMCTokenLock {
         return block.number;  // Returns the current block number
     }
 
+    // Function to change the owner of the contract
+    function changeOwner(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "New owner address cannot be zero address");
+        owner = newOwner;
+    }
+
     // Reject any incoming Ether transfer
     receive() external payable {
         revert("Ether transfers are not accepted");
@@ -51,4 +63,3 @@ contract USMCTokenLock {
         revert("Ether transfers with data are not accepted");
     }
 }
-
