@@ -1,85 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// ERC-20 Token Interface
 interface IERC20 {
-    function totalSupply() external view returns (uint256);
-    function balanceOf(address account) external view returns (uint256);
     function transfer(address recipient, uint256 amount) external returns (bool);
-    function approve(address spender, uint256 amount) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint256);
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
 }
 
-// The Token Exchange Contract
-contract TokenExchange {
+contract TokenDistributor {
 
-    IERC20 public token; // ERC-20 token contract
-    address public owner;
-    
-    // Exchange rate: How many tokens you get for 1 ETH
-    uint256 public rate;
+    IERC20 public token;  // The ERC-20 token this contract will hold
+    uint256 public amountToSend = 1776 * 10**18; // 1776 tokens (assuming 18 decimals)
 
-    // Fixed token amount for sending 0 ETH
-    uint256 public fixedTokenAmount = 1776;
-
-    // Events
-    event TokensPurchased(address indexed buyer, uint256 ethAmount, uint256 tokenAmount);
-    event FixedAmountTokensPurchased(address indexed buyer, uint256 tokenAmount);
-
-    // Constructor to set the token address and initial rate
-    constructor(address _tokenAddress, uint256 _rate) {
-        token = IERC20(_tokenAddress);
-        rate = _rate;
-        owner = msg.sender;
+    constructor(address _tokenAddress) {
+        token = IERC20(_tokenAddress);  // Set the ERC-20 token contract address
     }
 
-    // Function to receive ETH and send tokens
+    // Function to receive Ether. Will send 1776 tokens when 0 ETH is sent.
     receive() external payable {
-        uint256 tokenAmount;
-
-        // If the user sends 0 ETH, they get a fixed amount of 1776 tokens
-        if (msg.value == 0) {
-            tokenAmount = fixedTokenAmount;
-            emit FixedAmountTokensPurchased(msg.sender, tokenAmount);
-        } else {
-            // Otherwise, calculate token amount based on ETH sent
-            tokenAmount = msg.value * rate;
-            emit TokensPurchased(msg.sender, msg.value, tokenAmount);
-        }
+        require(msg.value == 0, "Cannot send ETH to the contract");
 
         // Ensure the contract has enough tokens to send
-        require(token.balanceOf(address(this)) >= tokenAmount, "Not enough tokens in the contract");
+        require(token.balanceOf(address(this)) >= amountToSend, "Not enough tokens in the contract");
 
         // Transfer tokens to the sender
-        token.transfer(msg.sender, tokenAmount);
+        token.transfer(msg.sender, amountToSend);
     }
-
-    // Function to withdraw ETH from the contract (only owner)
-    function withdrawETH(uint256 amount) external {
-        require(msg.sender == owner, "Only owner can withdraw");
-        payable(owner).transfer(amount);
-    }
-
-    // Function to withdraw tokens from the contract (only owner)
-    function withdrawTokens(uint256 amount) external {
-        require(msg.sender == owner, "Only owner can withdraw");
-        token.transfer(owner, amount);
-    }
-
-    // Function to set a new rate (only owner)
-    function setRate(uint256 newRate) external {
-        require(msg.sender == owner, "Only owner can set the rate");
-        rate = newRate;
-    }
-
-    // Function to get the contract's ETH balance
-    function getEthBalance() external view returns (uint256) {
-        return address(this).balance;
-    }
-
-    // Function to get the contract's token balance
-    function getTokenBalance() external view returns (uint256) {
-        return token.balanceOf(address(this));
+    
+    // Function to deposit tokens into the contract (so it can distribute)
+    function depositTokens(uint256 amount) external {
+        require(token.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
     }
 }
