@@ -6,7 +6,7 @@ interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
 }
 
-contract TokenDistributor {
+contract USMCTokenFaucet {
 
     IERC20 public token;  // The ERC-20 token this contract will hold
     uint256 public amountToSend = 1776 * 10**18; // 1776 tokens (assuming 18 decimals)
