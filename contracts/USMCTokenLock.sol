@@ -12,6 +12,8 @@ contract USMCTokenLock {
     address public owner;
     IERC20 public token;
     uint256 public lockUntil;
+    uint256 public tokenDecimals = 18;
+
 
     // Constructor sets the token address and sets the lock period to 0
     constructor(address _tokenAddress) {
@@ -25,10 +27,11 @@ contract USMCTokenLock {
         _;
     }
 
-    // Withdraw tokens after the lock period ends
-    function Withdraw(uint256 amount) external {
+   function Withdraw(uint256 amount) external {
         require(block.timestamp >= lockUntil, "Tokens are still locked");
-        require(token.transfer(msg.sender, amount), "Token transfer failed");
+        // Ensure the amount is in the correct decimal format    
+        uint256 amountInBaseUnit = amount * (10 ** tokenDecimals);
+        require(token.transfer(msg.sender, amountInBaseUnit), "Token transfer failed");
     }
 
     // Lock tokens for a specific time period
